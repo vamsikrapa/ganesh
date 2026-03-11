@@ -1,0 +1,1340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Content Studio — AI Creative Suite</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #080b12;
+  --surface: #0f1420;
+  --surface2: #161c2e;
+  --border: #1e2840;
+  --border2: #2a3558;
+  --text: #e8eaf2;
+  --text2: #8892b0;
+  --text3: #4a5578;
+  --accent: #6c8eff;
+  --accent2: #ff6b9d;
+  --accent3: #43e8a0;
+  --accent4: #ffb347;
+  --glow: rgba(108,142,255,0.15);
+  --glow2: rgba(255,107,157,0.12);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Syne', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Ambient background */
+body::before {
+  content: '';
+  position: fixed;
+  top: -30%;
+  left: -20%;
+  width: 70%;
+  height: 70%;
+  background: radial-gradient(ellipse, rgba(108,142,255,0.06) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+body::after {
+  content: '';
+  position: fixed;
+  bottom: -20%;
+  right: -10%;
+  width: 60%;
+  height: 60%;
+  background: radial-gradient(ellipse, rgba(255,107,157,0.05) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Header */
+.studio-header {
+  position: relative;
+  z-index: 10;
+  padding: 36px 48px 28px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.logo-mark {
+  width: 38px;
+  height: 38px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  box-shadow: 0 0 20px rgba(108,142,255,0.3);
+}
+
+.logo-text {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+
+.logo-text span {
+  color: var(--accent);
+}
+
+.progress-trail {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.trail-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text3);
+  letter-spacing: 0.05em;
+  transition: color 0.3s;
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid transparent;
+}
+
+.trail-step.active {
+  color: var(--accent);
+  border-color: rgba(108,142,255,0.3);
+  background: rgba(108,142,255,0.08);
+}
+
+.trail-step.done {
+  color: var(--accent3);
+  border-color: rgba(67,232,160,0.2);
+  background: rgba(67,232,160,0.06);
+}
+
+.trail-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.trail-line {
+  width: 24px;
+  height: 1px;
+  background: var(--border2);
+  margin: 0 4px;
+}
+
+/* Main layout */
+.studio-body {
+  position: relative;
+  z-index: 1;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 48px 48px 120px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+/* Section card */
+.section-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: border-color 0.3s;
+}
+
+.section-card.active-section { border-color: var(--border2); }
+
+.section-card.locked {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.section-card.unlocked {
+  animation: cardReveal 0.5s ease forwards;
+}
+
+@keyframes cardReveal {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Section header */
+.section-head {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 24px 28px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface2);
+}
+
+.section-num {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.s1 .section-num { background: rgba(108,142,255,0.15); color: var(--accent); border: 1px solid rgba(108,142,255,0.3); }
+.s2 .section-num { background: rgba(255,107,157,0.12); color: var(--accent2); border: 1px solid rgba(255,107,157,0.25); }
+.s3 .section-num { background: rgba(67,232,160,0.1); color: var(--accent3); border: 1px solid rgba(67,232,160,0.2); }
+.s4 .section-num { background: rgba(255,179,71,0.1); color: var(--accent4); border: 1px solid rgba(255,179,71,0.2); }
+
+.section-head-text h2 {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+.section-head-text p {
+  font-size: 12px;
+  color: var(--text3);
+  margin-top: 2px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.section-badge {
+  margin-left: auto;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+.badge-waiting { background: rgba(255,255,255,0.05); color: var(--text3); border: 1px solid var(--border); }
+.badge-active  { background: rgba(108,142,255,0.1);  color: var(--accent);  border: 1px solid rgba(108,142,255,0.25); }
+.badge-done    { background: rgba(67,232,160,0.08);  color: var(--accent3); border: 1px solid rgba(67,232,160,0.2); }
+
+/* Section body */
+.section-body { padding: 28px; }
+
+/* ─── SECTION 1: Input ─── */
+.input-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.input-full { grid-column: 1 / -1; }
+
+.field-wrap { display: flex; flex-direction: column; gap: 7px; }
+
+.field-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--text3);
+}
+
+textarea, input, select {
+  background: var(--bg);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  padding: 13px 16px;
+  font-family: 'Syne', sans-serif;
+  font-size: 14px;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  width: 100%;
+}
+
+textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
+
+textarea:focus, input:focus, select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(108,142,255,0.1);
+}
+
+textarea::placeholder, input::placeholder { color: var(--text3); }
+
+select {
+  cursor: pointer;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%234a5578' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 36px;
+}
+
+select option { background: var(--surface2); }
+
+/* Btn */
+.btn-primary {
+  width: 100%;
+  padding: 16px 28px;
+  background: linear-gradient(135deg, var(--accent), #8b6fff);
+  border: none;
+  border-radius: 12px;
+  font-family: 'Syne', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: white;
+  cursor: pointer;
+  transition: all 0.25s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.btn-primary:hover::before { opacity: 1; }
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(108,142,255,0.35); }
+.btn-primary:active { transform: translateY(0); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+.btn-icon { font-size: 16px; transition: transform 0.3s; }
+.btn-primary:hover .btn-icon { transform: scale(1.2); }
+
+/* Loader dots */
+.loader { display: none; gap: 5px; align-items: center; }
+.loader.show { display: flex; }
+.loader span {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: white; opacity: 0.7;
+  animation: pulse 1.2s ease-in-out infinite;
+}
+.loader span:nth-child(2) { animation-delay: 0.2s; }
+.loader span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes pulse { 0%,100%{transform:scale(1);opacity:0.4} 50%{transform:scale(1.3);opacity:1} }
+
+/* ─── SECTION 2: Ideas Grid ─── */
+.ideas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+}
+
+.idea-card {
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 20px;
+  cursor: pointer;
+  transition: all 0.22s;
+  position: relative;
+  animation: cardIn 0.35s ease forwards;
+  opacity: 0;
+}
+
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(10px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.idea-card:hover {
+  border-color: var(--accent2);
+  background: rgba(255,107,157,0.05);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+}
+
+.idea-card.selected {
+  border-color: var(--accent2);
+  background: rgba(255,107,157,0.08);
+  box-shadow: 0 0 0 3px rgba(255,107,157,0.15), 0 8px 24px rgba(0,0,0,0.3);
+}
+
+.idea-card-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--text3);
+  margin-bottom: 8px;
+  letter-spacing: 0.1em;
+}
+
+.idea-card-title {
+  font-family: 'Instrument Serif', serif;
+  font-size: 15px;
+  line-height: 1.4;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.idea-card-desc {
+  font-size: 12px;
+  color: var(--text2);
+  line-height: 1.6;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 300;
+}
+
+.idea-card-tags {
+  display: flex;
+  gap: 6px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.chip {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.chip-platform { background: rgba(108,142,255,0.12); color: var(--accent); border: 1px solid rgba(108,142,255,0.2); }
+.chip-format   { background: rgba(255,107,157,0.1);  color: var(--accent2); border: 1px solid rgba(255,107,157,0.2); }
+
+.idea-select-hint {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: transparent;
+  transition: all 0.2s;
+}
+
+.idea-card.selected .idea-select-hint {
+  background: var(--accent2);
+  border-color: var(--accent2);
+  color: white;
+}
+
+.ideas-action {
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.selected-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--accent2);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-section {
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-family: 'Syne', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+}
+
+.btn-s2 {
+  background: linear-gradient(135deg, var(--accent2), #c0457a);
+  color: white;
+}
+
+.btn-s2:hover { box-shadow: 0 6px 20px rgba(255,107,157,0.3); transform: translateY(-1px); }
+.btn-s2:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+
+/* ─── SECTION 3: Scripts ─── */
+.scripts-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.script-card {
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.22s;
+  animation: cardIn 0.35s ease forwards;
+  opacity: 0;
+}
+
+.script-card:hover {
+  border-color: var(--accent3);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(0,0,0,0.4);
+}
+
+.script-card.selected {
+  border-color: var(--accent3);
+  box-shadow: 0 0 0 3px rgba(67,232,160,0.15), 0 10px 28px rgba(0,0,0,0.4);
+}
+
+.script-card-head {
+  background: var(--surface2);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+}
+
+.script-style {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border-radius: 6px;
+  background: rgba(67,232,160,0.1);
+  color: var(--accent3);
+  border: 1px solid rgba(67,232,160,0.2);
+}
+
+.script-select-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  color: transparent;
+  transition: all 0.2s;
+}
+
+.script-card.selected .script-select-dot {
+  background: var(--accent3);
+  border-color: var(--accent3);
+  color: white;
+}
+
+.script-body { padding: 16px; }
+
+.script-title {
+  font-family: 'Instrument Serif', serif;
+  font-size: 14px;
+  color: var(--text);
+  margin-bottom: 10px;
+  line-height: 1.4;
+}
+
+.script-preview {
+  font-size: 11.5px;
+  color: var(--text2);
+  line-height: 1.7;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 300;
+  max-height: 120px;
+  overflow: hidden;
+  position: relative;
+}
+
+.script-preview::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 40px;
+  background: linear-gradient(transparent, var(--bg));
+}
+
+.script-card.selected .script-preview::after {
+  display: none;
+}
+
+.script-card.selected .script-preview { max-height: none; }
+
+.script-meta {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.scripts-action {
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.btn-s3 {
+  background: linear-gradient(135deg, var(--accent3), #2bb87a);
+  color: #050a0a;
+}
+
+.btn-s3:hover { box-shadow: 0 6px 20px rgba(67,232,160,0.25); transform: translateY(-1px); }
+.btn-s3:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+
+/* ─── SECTION 4: Shoot Guide ─── */
+.shoot-guide { display: flex; flex-direction: column; gap: 16px; }
+
+.shoot-step {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  animation: cardIn 0.35s ease forwards;
+  opacity: 0;
+}
+
+.shoot-step-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 20px;
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+}
+
+.step-index {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: rgba(255,179,71,0.12);
+  border: 1px solid rgba(255,179,71,0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--accent4);
+  flex-shrink: 0;
+}
+
+.step-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  flex: 1;
+}
+
+.step-duration {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--text3);
+  background: var(--border);
+  padding: 3px 9px;
+  border-radius: 6px;
+}
+
+.shoot-step-body { padding: 18px 20px; }
+
+.step-desc {
+  font-size: 13px;
+  color: var(--text2);
+  line-height: 1.7;
+  margin-bottom: 14px;
+}
+
+.clips-list { display: flex; flex-direction: column; gap: 8px; }
+
+.clip-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.clip-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.clip-text {
+  font-size: 12.5px;
+  color: var(--text2);
+  line-height: 1.6;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 300;
+}
+
+.clip-text strong {
+  color: var(--text);
+  font-weight: 500;
+}
+
+/* Empty / loading states */
+.empty-state {
+  text-align: center;
+  padding: 48px 24px;
+  color: var(--text3);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  line-height: 1.8;
+}
+
+.empty-icon { font-size: 32px; margin-bottom: 12px; opacity: 0.4; }
+
+/* Error */
+.err-box {
+  background: rgba(255,80,80,0.08);
+  border: 1px solid rgba(255,80,80,0.2);
+  border-radius: 10px;
+  padding: 14px 18px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: #ff8080;
+  margin-top: 14px;
+  display: none;
+}
+.err-box.show { display: block; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+@media (max-width: 768px) {
+  .studio-header { padding: 20px 24px; flex-wrap: wrap; }
+  .studio-body { padding: 24px 20px 80px; }
+  .input-grid, .scripts-grid { grid-template-columns: 1fr; }
+  .ideas-grid { grid-template-columns: 1fr; }
+  .progress-trail { display: none; }
+}
+</style>
+</head>
+<body>
+
+<header class="studio-header">
+  <div class="logo">
+    <div class="logo-mark">✦</div>
+    <div class="logo-text">Content <span>Studio</span></div>
+  </div>
+  <div class="progress-trail">
+    <div class="trail-step active" id="trail-1"><div class="trail-dot"></div> Brief</div>
+    <div class="trail-line"></div>
+    <div class="trail-step" id="trail-2"><div class="trail-dot"></div> Ideas</div>
+    <div class="trail-line"></div>
+    <div class="trail-step" id="trail-3"><div class="trail-dot"></div> Script</div>
+    <div class="trail-line"></div>
+    <div class="trail-step" id="trail-4"><div class="trail-dot"></div> Shoot</div>
+  </div>
+</header>
+
+<main class="studio-body">
+
+  <!-- ══════════════ SECTION 1 ══════════════ -->
+  <div class="section-card s1 active-section" id="sec1">
+    <div class="section-head">
+      <div class="section-num">01</div>
+      <div class="section-head-text">
+        <h2>Content Brief</h2>
+        <p>Define your topic and parameters</p>
+      </div>
+      <span class="section-badge badge-active">Active</span>
+    </div>
+    <div class="section-body">
+      <div class="input-grid">
+        <div class="field-wrap input-full">
+          <label class="field-label">Topic / Niche *</label>
+          <textarea id="topic" placeholder="e.g. Interior design tips for small apartments, Sustainable fashion for college students…"></textarea>
+        </div>
+        <div class="field-wrap">
+          <label class="field-label">Platform</label>
+          <select id="platform">
+            <option value="Instagram">Instagram</option>
+            <option value="TikTok">TikTok</option>
+            <option value="YouTube">YouTube</option>
+            <option value="LinkedIn">LinkedIn</option>
+            <option value="Twitter / X">Twitter / X</option>
+            <option value="Pinterest">Pinterest</option>
+          </select>
+        </div>
+        <div class="field-wrap">
+          <label class="field-label">Target Audience</label>
+          <input type="text" id="audience" placeholder="e.g. Women 18–35, Gen Z beginners…">
+        </div>
+        <div class="field-wrap">
+          <label class="field-label">Tone</label>
+          <select id="tone">
+            <option>Motivational</option>
+            <option>Educational</option>
+            <option>Entertaining</option>
+            <option>Inspirational</option>
+            <option>Conversational</option>
+            <option>Professional</option>
+            <option>Humorous</option>
+          </select>
+        </div>
+        <div class="field-wrap">
+          <label class="field-label">Number of Ideas</label>
+          <select id="count">
+            <option value="6">6 ideas</option>
+            <option value="9" selected>9 ideas</option>
+            <option value="12">12 ideas</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn-primary" id="btn1" onclick="generateIdeas()">
+        <span class="btn-icon" id="btn1-icon">✦</span>
+        <span id="btn1-text">Generate Ideas</span>
+        <div class="loader" id="loader1"><span></span><span></span><span></span></div>
+      </button>
+      <div class="err-box" id="err1"></div>
+    </div>
+  </div>
+
+  <!-- ══════════════ SECTION 2 ══════════════ -->
+  <div class="section-card s2 locked" id="sec2">
+    <div class="section-head">
+      <div class="section-num">02</div>
+      <div class="section-head-text">
+        <h2>Pick an Idea</h2>
+        <p>Click any idea to select it, then generate scripts</p>
+      </div>
+      <span class="section-badge badge-waiting" id="badge2">Waiting</span>
+    </div>
+    <div class="section-body">
+      <div class="empty-state" id="ideas-empty">
+        <div class="empty-icon">💡</div>
+        Fill in your brief above and click Generate Ideas to begin.
+      </div>
+      <div class="ideas-grid" id="ideas-grid" style="display:none"></div>
+      <div class="ideas-action" id="ideas-action" style="display:none">
+        <div class="selected-label" id="selected-idea-label">— No idea selected</div>
+        <button class="btn-section btn-s2" id="btn2" onclick="generateScripts()" disabled>
+          <span id="btn2-icon">✍️</span>
+          <span id="btn2-text">Generate 3 Scripts</span>
+          <div class="loader" id="loader2" style="display:none"><span></span><span></span><span></span></div>
+        </button>
+      </div>
+      <div class="err-box" id="err2"></div>
+    </div>
+  </div>
+
+  <!-- ══════════════ SECTION 3 ══════════════ -->
+  <div class="section-card s3 locked" id="sec3">
+    <div class="section-head">
+      <div class="section-num">03</div>
+      <div class="section-head-text">
+        <h2>Choose a Script</h2>
+        <p>Select the style that fits your vision</p>
+      </div>
+      <span class="section-badge badge-waiting" id="badge3">Waiting</span>
+    </div>
+    <div class="section-body">
+      <div class="empty-state" id="scripts-empty">
+        <div class="empty-icon">✍️</div>
+        Select an idea above to unlock script generation.
+      </div>
+      <div class="scripts-grid" id="scripts-grid" style="display:none"></div>
+      <div class="scripts-action" id="scripts-action" style="display:none">
+        <div class="selected-label" style="color: var(--accent3)" id="selected-script-label">— No script selected</div>
+        <button class="btn-section btn-s3" id="btn3" onclick="generateShootGuide()" disabled>
+          <span>🎬</span>
+          <span id="btn3-text">Generate Shoot Guide</span>
+          <div class="loader" id="loader3" style="display:none"><span></span><span></span><span></span></div>
+        </button>
+      </div>
+      <div class="err-box" id="err3"></div>
+    </div>
+  </div>
+
+  <!-- ══════════════ SECTION 4 ══════════════ -->
+  <div class="section-card s4 locked" id="sec4">
+    <div class="section-head">
+      <div class="section-num">04</div>
+      <div class="section-head-text">
+        <h2>Shoot Guide</h2>
+        <p>Step-by-step shooting plan & clip suggestions</p>
+      </div>
+      <span class="section-badge badge-waiting" id="badge4">Waiting</span>
+    </div>
+    <div class="section-body">
+      <div class="empty-state" id="shoot-empty">
+        <div class="empty-icon">🎬</div>
+        Choose a script above to get your personalised shooting guide.
+      </div>
+      <div class="shoot-guide" id="shoot-guide" style="display:none"></div>
+      <div class="err-box" id="err4"></div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+// ─── State ───
+let state = {
+  ideas: [],
+  selectedIdea: null,
+  scripts: [],
+  selectedScript: null,
+};
+
+// ─── Utils ───
+function setLoading(section, on) {
+  const btn = document.getElementById(`btn${section}`);
+  const loader = document.getElementById(`loader${section}`);
+  const icon = document.getElementById(`btn${section}-icon`);
+  const textEl = document.getElementById(`btn${section}-text`);
+  btn.disabled = on;
+  loader.style.display = on ? 'flex' : 'none';
+  if (icon) icon.style.display = on ? 'none' : '';
+  if (textEl) textEl.style.opacity = on ? 0 : 1;
+}
+
+function showErr(section, msg) {
+  const el = document.getElementById(`err${section}`);
+  el.textContent = '⚠ ' + msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 6000);
+}
+
+function unlockSection(id) {
+  const el = document.getElementById(`sec${id}`);
+  el.classList.remove('locked');
+  el.classList.add('unlocked');
+  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  updateTrail();
+}
+
+function updateTrail() {
+  const steps = ['trail-1','trail-2','trail-3','trail-4'];
+  const secDone = [
+    state.ideas.length > 0,
+    state.selectedIdea !== null,
+    state.selectedScript !== null,
+    document.getElementById('shoot-guide').style.display !== 'none'
+  ];
+  steps.forEach((id, i) => {
+    const el = document.getElementById(id);
+    el.className = 'trail-step';
+    if (secDone[i]) el.classList.add('done');
+    else if (i === secDone.filter(Boolean).length) el.classList.add('active');
+  });
+}
+
+async function callClaude(prompt) {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 2500,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
+  if (!res.ok) {
+    const e = await res.json().catch(() => ({}));
+    throw new Error(e?.error?.message || `API error ${res.status}`);
+  }
+  const data = await res.json();
+  const raw = data.content?.find(b => b.type === 'text')?.text || '';
+  return robustParse(raw);
+}
+
+function robustParse(raw) {
+  // 1. Strip markdown fences
+  let text = raw.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
+
+  // 2. Extract the outermost [ ... ] or { ... } block
+  const arrStart = text.indexOf('[');
+  const objStart = text.indexOf('{');
+  let start = -1, isArray = false;
+  if (arrStart !== -1 && (objStart === -1 || arrStart < objStart)) {
+    start = arrStart; isArray = true;
+  } else if (objStart !== -1) {
+    start = objStart; isArray = false;
+  }
+  if (start === -1) throw new Error('No JSON found in response. Please retry.');
+
+  // Find matching closing bracket by counting depth
+  const open = isArray ? '[' : '{';
+  const close = isArray ? ']' : '}';
+  let depth = 0, end = -1, inStr = false, esc = false;
+  for (let i = start; i < text.length; i++) {
+    const ch = text[i];
+    if (esc) { esc = false; continue; }
+    if (ch === '\\') { esc = true; continue; }
+    if (ch === '"' && !esc) { inStr = !inStr; continue; }
+    if (inStr) continue;
+    if (ch === open) depth++;
+    else if (ch === close) { depth--; if (depth === 0) { end = i; break; } }
+  }
+  if (end === -1) throw new Error('Incomplete JSON in response. Please retry.');
+
+  let jsonStr = text.slice(start, end + 1);
+
+  // 3. Sanitise string values: fix unescaped newlines, tabs, and stray quotes INSIDE strings
+  // Walk char by char and escape control chars inside JSON strings
+  jsonStr = fixJsonStringContents(jsonStr);
+
+  // 4. Parse
+  try {
+    return JSON.parse(jsonStr);
+  } catch(e) {
+    // 5. Last resort: try to fix common issues then parse again
+    const fixed = jsonStr
+      .replace(/[\u2018\u2019]/g, "'")   // smart single quotes → plain apostrophe
+      .replace(/[\u201C\u201D]/g, '"')   // smart double quotes → plain quote
+      .replace(/\r\n/g, '\\n')           // CRLF
+      .replace(/\r/g, '\\n');            // CR
+    try {
+      return JSON.parse(fixed);
+    } catch(e2) {
+      throw new Error('Could not parse AI response. Please retry.');
+    }
+  }
+}
+
+function fixJsonStringContents(jsonStr) {
+  // Re-serialise string values to properly escape any raw control characters
+  let result = '';
+  let inString = false;
+  let escaped = false;
+  for (let i = 0; i < jsonStr.length; i++) {
+    const ch = jsonStr[i];
+    const code = jsonStr.charCodeAt(i);
+    if (escaped) {
+      escaped = false;
+      result += ch;
+      continue;
+    }
+    if (ch === '\\') {
+      escaped = true;
+      result += ch;
+      continue;
+    }
+    if (ch === '"') {
+      inString = !inString;
+      result += ch;
+      continue;
+    }
+    if (inString) {
+      // Escape raw control characters that are illegal inside JSON strings
+      if (code === 0x0A) { result += '\\n'; continue; }   // newline
+      if (code === 0x0D) { result += '\\r'; continue; }   // carriage return
+      if (code === 0x09) { result += '\\t'; continue; }   // tab
+      if (code < 0x20)  { result += '\\u' + code.toString(16).padStart(4,'0'); continue; }
+    }
+    result += ch;
+  }
+  return result;
+}
+
+// ─── SECTION 1 → Generate Ideas ───
+async function generateIdeas() {
+  const topic    = document.getElementById('topic').value.trim();
+  const platform = document.getElementById('platform').value;
+  const audience = document.getElementById('audience').value.trim() || 'General audience';
+  const tone     = document.getElementById('tone').value;
+  const count    = document.getElementById('count').value;
+
+  if (!topic) { showErr(1, 'Please enter a topic first.'); return; }
+
+  setLoading(1, true);
+  document.getElementById('sec2').classList.add('locked');
+  document.getElementById('sec2').classList.remove('unlocked');
+  document.getElementById('sec3').classList.add('locked');
+  document.getElementById('sec4').classList.add('locked');
+
+  const prompt = `Generate exactly ${count} creative content ideas. Return ONLY a raw JSON array with no markdown, no code fences, no text before or after. IMPORTANT: All string values must be plain text with no raw newlines or unescaped special characters inside them.
+
+Each item must have exactly these keys: title, description, platform, format.
+
+Topic: ${topic} | Platform: ${platform} | Audience: ${audience} | Tone: ${tone}`;
+
+  try {
+    const ideas = await callClaude(prompt);
+    state.ideas = Array.isArray(ideas) ? ideas : [ideas];
+    state.selectedIdea = null;
+    renderIdeas();
+    document.getElementById('badge2').textContent = `${state.ideas.length} ideas`;
+    document.getElementById('badge2').className = 'section-badge badge-done';
+    document.getElementById('sec1').querySelector('.section-badge').className = 'section-badge badge-done';
+    document.getElementById('sec1').querySelector('.section-badge').textContent = 'Done';
+    unlockSection(2);
+  } catch(e) {
+    showErr(1, e.message);
+  } finally {
+    setLoading(1, false);
+  }
+}
+
+function renderIdeas() {
+  const grid = document.getElementById('ideas-grid');
+  const empty = document.getElementById('ideas-empty');
+  const action = document.getElementById('ideas-action');
+
+  grid.innerHTML = '';
+  state.ideas.forEach((idea, i) => {
+    const card = document.createElement('div');
+    card.className = 'idea-card';
+    card.style.animationDelay = `${i * 60}ms`;
+    card.innerHTML = `
+      <div class="idea-select-hint">✓</div>
+      <div class="idea-card-num">${String(i+1).padStart(2,'0')}</div>
+      <div class="idea-card-title">${esc(idea.title)}</div>
+      <div class="idea-card-desc">${esc(idea.description)}</div>
+      <div class="idea-card-tags">
+        <span class="chip chip-platform">${esc(idea.platform||'')}</span>
+        <span class="chip chip-format">${esc(idea.format||'Post')}</span>
+      </div>`;
+    card.onclick = () => selectIdea(i, card);
+    grid.appendChild(card);
+  });
+
+  empty.style.display = 'none';
+  grid.style.display = 'grid';
+  action.style.display = 'flex';
+  document.getElementById('btn2').disabled = true;
+  document.getElementById('selected-idea-label').textContent = '— Click an idea to select it';
+}
+
+function selectIdea(idx, card) {
+  document.querySelectorAll('.idea-card').forEach(c => c.classList.remove('selected'));
+  card.classList.add('selected');
+  state.selectedIdea = state.ideas[idx];
+  document.getElementById('selected-idea-label').textContent = `✓ Selected: "${state.selectedIdea.title.slice(0,40)}…"`;
+  document.getElementById('btn2').disabled = false;
+}
+
+// ─── SECTION 2 → Generate Scripts ───
+async function generateScripts() {
+  if (!state.selectedIdea) return;
+  const idea = state.selectedIdea;
+  const platform = document.getElementById('platform').value;
+  const tone = document.getElementById('tone').value;
+
+  const loaderEl = document.getElementById('loader2');
+  const textEl = document.getElementById('btn2-text');
+  document.getElementById('btn2').disabled = true;
+  loaderEl.style.display = 'flex';
+  textEl.style.opacity = 0;
+
+  document.getElementById('sec3').classList.add('locked');
+  document.getElementById('sec4').classList.add('locked');
+
+  const prompt = `Write 3 different video scripts for this content idea. Return ONLY a raw JSON array with no markdown, no code fences, no text before or after the JSON.
+
+CRITICAL JSON RULES: All string values must use straight double quotes only. Do not put raw newlines inside string values — represent paragraph breaks as the two characters backslash-n written literally. Do not use curly/smart quotes. Apostrophes are fine inside strings.
+
+Idea: ${idea.title} | Platform: ${platform} | Format: ${idea.format} | Tone: ${tone}
+
+Return exactly 3 objects. Required keys for each: style, title, hook, body, cta, duration, vibe.
+- style: Hook-first OR Storytelling OR Tutorial
+- title: name of this script version
+- hook: the opening 1-2 sentences
+- body: the main script content (write paragraphs on a SINGLE LINE separated by the literal characters backslash n, do NOT use actual newlines)
+- cta: closing call-to-action
+- duration: e.g. 30-45 sec
+- vibe: one word energy descriptor`;
+
+  try {
+    const scripts = await callClaude(prompt);
+    state.scripts = Array.isArray(scripts) ? scripts : [scripts];
+    state.selectedScript = null;
+    renderScripts();
+    document.getElementById('badge3').textContent = '3 scripts ready';
+    document.getElementById('badge3').className = 'section-badge badge-done';
+    document.getElementById('badge2').textContent = 'Done';
+    unlockSection(3);
+  } catch(e) {
+    showErr(2, e.message);
+  } finally {
+    document.getElementById('btn2').disabled = false;
+    loaderEl.style.display = 'none';
+    textEl.style.opacity = 1;
+  }
+}
+
+function renderScripts() {
+  const grid = document.getElementById('scripts-grid');
+  const empty = document.getElementById('scripts-empty');
+  const action = document.getElementById('scripts-action');
+
+  grid.innerHTML = '';
+  state.scripts.forEach((s, i) => {
+    const card = document.createElement('div');
+    card.className = 'script-card';
+    card.style.animationDelay = `${i * 80}ms`;
+    const fullText = `${s.hook}\n\n${s.body}\n\n${s.cta}`;
+    card.innerHTML = `
+      <div class="script-card-head">
+        <span class="script-style">${esc(s.style||`Version ${i+1}`)}</span>
+        <div class="script-select-dot">✓</div>
+      </div>
+      <div class="script-body">
+        <div class="script-title">${esc(s.title||s.style)}</div>
+        <div class="script-preview">${esc(fullText).replace(/\n/g,'<br>')}</div>
+        <div class="script-meta">
+          <span class="chip chip-platform">${esc(s.duration||'')}</span>
+          <span class="chip chip-format">${esc(s.vibe||'')}</span>
+        </div>
+      </div>`;
+    card.onclick = () => selectScript(i, card);
+    grid.appendChild(card);
+  });
+
+  empty.style.display = 'none';
+  grid.style.display = 'grid';
+  action.style.display = 'flex';
+  document.getElementById('btn3').disabled = true;
+  document.getElementById('selected-script-label').textContent = '— Click a script to select it';
+}
+
+function selectScript(idx, card) {
+  document.querySelectorAll('.script-card').forEach(c => c.classList.remove('selected'));
+  card.classList.add('selected');
+  state.selectedScript = state.scripts[idx];
+  document.getElementById('selected-script-label').textContent = `✓ Selected: "${state.selectedScript.style}" — ${state.selectedScript.title?.slice(0,35)}…`;
+  document.getElementById('btn3').disabled = false;
+}
+
+// ─── SECTION 3 → Generate Shoot Guide ───
+async function generateShootGuide() {
+  if (!state.selectedScript) return;
+  const script = state.selectedScript;
+  const idea = state.selectedIdea;
+  const platform = document.getElementById('platform').value;
+
+  const loaderEl = document.getElementById('loader3');
+  const textEl = document.getElementById('btn3-text');
+  document.getElementById('btn3').disabled = true;
+  loaderEl.style.display = 'flex';
+  textEl.style.opacity = 0;
+
+  document.getElementById('sec4').classList.add('locked');
+
+  const prompt = `Create a step-by-step video shooting guide. Return ONLY a raw JSON array with no markdown, no code fences, no text before or after.
+
+CRITICAL JSON RULES: All string values must be on a single line with no raw newlines inside them. Do not use curly quotes. Use straight double quotes only for JSON structure.
+
+Script: ${script.title} (${script.style})
+Platform: ${platform} | Format: ${idea?.format||'Reel'}
+
+Generate exactly 6 shooting steps. Each step must have: title, duration, description, clips.
+- title: short step name
+- duration: time needed e.g. 10 min
+- description: 2-3 sentences as a SINGLE LINE string
+- clips: array of objects, each with icon (an emoji) and text (a single line description, use **word** for bold)`;
+
+  try {
+    const steps = await callClaude(prompt);
+    const arr = Array.isArray(steps) ? steps : [steps];
+    renderShootGuide(arr);
+    document.getElementById('badge4').textContent = `${arr.length} steps`;
+    document.getElementById('badge4').className = 'section-badge badge-done';
+    document.getElementById('badge3').textContent = 'Done';
+    unlockSection(4);
+  } catch(e) {
+    showErr(3, e.message);
+  } finally {
+    document.getElementById('btn3').disabled = false;
+    loaderEl.style.display = 'none';
+    textEl.style.opacity = 1;
+  }
+}
+
+function renderShootGuide(steps) {
+  const guide = document.getElementById('shoot-guide');
+  const empty = document.getElementById('shoot-empty');
+
+  guide.innerHTML = '';
+  steps.forEach((step, i) => {
+    const el = document.createElement('div');
+    el.className = 'shoot-step';
+    el.style.animationDelay = `${i * 70}ms`;
+
+    const clipsHtml = (step.clips || []).map(c => `
+      <div class="clip-item">
+        <div class="clip-icon">${c.icon || '🎥'}</div>
+        <div class="clip-text">${esc(c.text).replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g,'<br>')}</div>
+      </div>`).join('');
+
+    el.innerHTML = `
+      <div class="shoot-step-head">
+        <div class="step-index">${String(i+1).padStart(2,'0')}</div>
+        <div class="step-title">${esc(step.title)}</div>
+        <div class="step-duration">${esc(step.duration||'')}</div>
+      </div>
+      <div class="shoot-step-body">
+        <div class="step-desc">${esc(step.description).replace(/\n/g,'<br>')}</div>
+        <div class="clips-list">${clipsHtml}</div>
+      </div>`;
+    guide.appendChild(el);
+  });
+
+  empty.style.display = 'none';
+  guide.style.display = 'flex';
+}
+
+function esc(str) {
+  return String(str||'')
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+
+// Keyboard shortcut
+document.getElementById('topic').addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') generateIdeas();
+});
+</script>
+</body>
+</html>
